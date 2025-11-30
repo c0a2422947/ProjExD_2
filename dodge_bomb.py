@@ -53,10 +53,12 @@ def main():
             list_bb_spped[0] *= -1
         elif check_bound(bb_rct) == (True, False):
             list_bb_spped[1] *= -1
-            
+
         if check_bound(kk_rct) != (True, True):
             kk_rct.center = 300, 200
 
+        if kk_rct.colliderect(bb_rct):
+            return
 
 if __name__ == "__main__":
     pg.init()
