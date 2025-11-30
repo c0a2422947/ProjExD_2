@@ -6,6 +6,13 @@ import random
 WIDTH, HEIGHT = 1100, 650
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
+def check_bound(rct: pg.Rect) -> tuple[bool, bool]:
+    yoko, tate = True, True
+    if rct.left < 0 or WIDTH < rct.right:
+        yoko = False
+    if rct.top < 0 or HEIGHT < rct.bottom:
+        tate = False
+    return yoko, tate
 
 def main():
     pg.display.set_caption("逃げろ！こうかとん")
@@ -21,6 +28,7 @@ def main():
     kk_rct.center = 300, 200
     clock = pg.time.Clock()
     tmr = 0
+    list_bb_spped = [5, 5]
     DELTA = {pg.K_UP: (0, -5), pg.K_DOWN: (0, +5), pg.K_LEFT: (-5, 0), pg.K_RIGHT: (+5, 0)}
     while True:
         for event in pg.event.get():
@@ -37,10 +45,17 @@ def main():
         kk_rct.move_ip(sum_mv)
         screen.blit(kk_img, kk_rct)
         screen.blit(bb_img, bb_rct)
-        bb_rct.move_ip(+5, +5)
+        bb_rct.move_ip(list_bb_spped)
         pg.display.update()
         tmr += 1
         clock.tick(50)
+        if check_bound(bb_rct) == (False, True):
+            list_bb_spped[0] *= -1
+        elif check_bound(bb_rct) == (True, False):
+            list_bb_spped[1] *= -1
+            
+        if check_bound(kk_rct) != (True, True):
+            kk_rct.center = 300, 200
 
 
 if __name__ == "__main__":
