@@ -40,8 +40,19 @@ def init_bb_imgs() -> tuple[list[pg.Surface], list[int]]:
         bb_img = pg.Surface((20*r, 20*r))
         pg.draw.circle(bb_img, (255, 0, 0), (10*r, 10*r), 10*r)
         bb_imgs.append(bb_img)
-    return bb_imgs, bb_accs
+    return [bb_imgs, bb_accs]
 
+def calc_orientation(org: pg.Rect, dst: pg.Rect, current_xy: tuple[float, float]) -> tuple[float, float]:
+    dx = org[0] - dst[0]
+    dy = org[1] - dst[1]
+    norme = (dx**2 + dy**2)**0.5
+    ux = dx / norme
+    uy = dy / norme
+    if norme < 300:
+        return current_xy
+    else:
+        return (ux, uy)
+    
 def get_kk_imgs() -> dict[tuple[int, int], pg.Surface]:
     kk_img = pg.image.load("fig/3.png")
     kk_imgf = pg.transform.flip(kk_img, True, False)
@@ -60,14 +71,14 @@ def get_kk_imgs() -> dict[tuple[int, int], pg.Surface]:
 
 def main():
     pg.display.set_caption("逃げろ！こうかとん")
-    screen = pg.display.set_mode((WIDTH, HEIGHT))
-    bg_img = pg.image.load("fig/pg_bg.jpg")    
-    bb_img = pg.Surface((20, 20))
+    screen = pg.display.set_mode((WIDTH, HEIGHT)) #画面
+    bg_img = pg.image.load("fig/pg_bg.jpg") #背景   
+    bb_img = pg.Surface((20, 20)) #爆弾
     pg.draw.circle(bb_img, (255, 0, 0), (10, 10), 10)
     bb_img.set_colorkey((0, 0, 0))
     bb_rct = bb_img.get_rect()
     bb_rct.center = random.randint(0, WIDTH), random.randint(0, HEIGHT)
-    kk_imgs = get_kk_imgs()
+    kk_imgs = get_kk_imgs() #こうかとん
     kk_img = kk_imgs[(0, 0)]
     kk_rct = kk_img.get_rect()
     kk_rct.center = 300, 200
@@ -75,7 +86,9 @@ def main():
     tmr = 0
     vx = 5
     vy = 5
-    bb_imgs, bb_accs = init_bb_imgs()
+    bb= init_bb_imgs()
+    bb_imgs = bb[0]
+    bb_accs = bb[1]
     DELTA = {pg.K_UP: (0, -5), pg.K_DOWN: (0, +5), pg.K_LEFT: (-5, 0), pg.K_RIGHT: (+5, 0)}
     while True:
         for event in pg.event.get():
@@ -97,7 +110,8 @@ def main():
         kk_img = kk_imgs[tuple(sum_mv)]
         screen.blit(kk_img, kk_rct)
         screen.blit(bb_img, bb_rct)
-        bb_rct.move_ip(vx, vy)
+        orientation = calc_orientation(bb_rct.center, kk_rct.center, (avx, avy))
+        bb_rct.move_ip(list(orientation))
         pg.display.update()
         tmr += 1
         clock.tick(50)
@@ -105,9 +119,9 @@ def main():
             bb_rct.width = bb_img.get_rect().width
             bb_rct.height = bb_img.get_rect().height
         if check_bound(bb_rct) == (False, True):
-            vx *= -1
+            avx *= -1
         elif check_bound(bb_rct) == (True, False):
-            vy *= -1
+            avy *= -1
 
         if check_bound(kk_rct) != (True, True):
             kk_rct.center = 300, 200
